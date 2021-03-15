@@ -54,13 +54,18 @@
         result       (vals->map last first email color dob)]
     result))
 
-(s/defn wsv-parse
-  [fname]
+(s/defn file-ingest-prep :- [s/Str]
+  [fname  :- s/Str]
   (it-> fname
     (io/resource it)
     (slurp it)
     (str/split-lines it)
-    (mapv str/whitespace-collapse it)
+    (mapv str/whitespace-collapse it)))
+
+(s/defn wsv-parse
+  [fname :- s/Str]
+  (it-> fname
+    (file-ingest-prep it)
     (mapv wsv-parse-line it)
     )
   )
