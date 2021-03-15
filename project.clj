@@ -2,6 +2,7 @@
   :license {:name "Eclipse Public License"
             :url  "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [
+                 [camel-snake-kebab "0.4.2"]
                  [clojure.java-time "0.3.2"]
                  [http-kit "2.5.3"]
                  [org.flatland/ordered "1.5.9"]
