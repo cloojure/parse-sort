@@ -5,7 +5,8 @@
     [org.httpkit.client :as http]
     [schema.core :as s]
     [tupelo.string :as str]
-    [clojure.java.io :as io])
+    [clojure.java.io :as io]
+    [clojure.walk :as walk])
   (:import
     [java.time LocalDate ]
     [java.time.format DateTimeFormatter ]
@@ -14,8 +15,30 @@
 (def test-data-fnames
   ["data-1.psv"
    "data-2.csv"
-   "data-3.wsv"] )
+   "data-3.wsv"])
 
+;---------------------------------------------------------------------------------------------------
+; helper functions for testing
+(s/defn LocalDate->tagstr :- s/Str
+  [arg] (str "<LocalDate " arg ">"))
+
+(defn walk-LocalDate->str
+  [data]
+  (walk/postwalk (fn [item]
+                   (cond-it-> item
+                     (instance? LocalDate it) (LocalDate->tagstr it)))
+    data))
+
+(dotest
+  (let [ld       (LocalDate/parse "1999-01-02")
+        orig     [1 {:b ld}]
+        expected [1 {:b "<LocalDate 1999-01-02>"}]]
+    (isnt (instance? LocalDate "1999-01-02"))
+    (is (instance? LocalDate ld))
+    (is= "<LocalDate 1999-01-02>" (LocalDate->tagstr ld))
+    (is= expected (walk-LocalDate->str orig))))
+
+;---------------------------------------------------------------------------------------------------
 (dotest
   ; verify conversion of original column labels into keywords
   (is= field-names
@@ -49,7 +72,7 @@
      :color "C3",
      :dob   (mdy-str->LocalDate "3-3-2003")})
 
-  ; verify localdates sort OK via standard comparator from clojure
+  ; verify LocalDate values sort OK via standard comparator from clojure
   (let [d1 (LocalDate/parse "1999-01-01")
         d2 (LocalDate/parse "1999-01-02")]
     (is= (mapv str (sort [d2 d1]))
@@ -58,8 +81,13 @@
 
 
   ; parse the WSV file
-  (spyx-pretty
-    (wsv-parse "data-3.wsv"))
+  (is= (walk-LocalDate->str
+         (wsv-parse "data-3.wsv"))
+    [{:last "Last-1", :first "First-1", :email "lf11@aol.com", :color "C1", :dob "<LocalDate 2001-01-01>"}
+     {:last "Last-2", :first "First-2", :email "lf22@aol.com", :color "C2", :dob "<LocalDate 2002-02-02>"}
+     {:last "Last-3", :first "First-3", :email "lf33@aol.com", :color "C3", :dob "<LocalDate 2003-03-03>"}
+     {:last "Last-4", :first "First-4", :email "lf44@aol.com", :color "C4", :dob "<LocalDate 2004-04-04>"}
+     {:last "Last-5", :first "First-5", :email "lf55@aol.com", :color "C5", :dob "<LocalDate 2005-05-05>"}])
 
   )
 

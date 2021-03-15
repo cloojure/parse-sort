@@ -31,9 +31,10 @@
 ; will output dates like `1/2/1999` and `11/12/1999`
 (def dtf (DateTimeFormatter/ofPattern "M/d/yyyy"))
 
-(s/defn mdy-str->LocalDate ; :- LocalDate
+(s/defn mdy-str->LocalDate :- LocalDate
   "Parse a sloppy date string like `M/D/YYYY` or `M-D-YYYY` into a LocalDate"
   [date-str :- s/Str]
+  ; #todo add more error checking for invalid strings
   (let [parts  (str/split date-str #"/|-")
         month  (str/pad-left (nth parts 0) 2 \0)
         day    (str/pad-left (nth parts 1) 2 \0)
@@ -57,6 +58,7 @@
     (slurp it)
     (str/split-lines it)
     (mapv str/whitespace-collapse it)
+    (mapv wsv-parse-line it)
     )
   )
 
