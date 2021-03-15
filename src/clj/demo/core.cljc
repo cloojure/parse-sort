@@ -5,7 +5,8 @@
     [org.httpkit.client :as http]
     [schema.core :as s]
     [tupelo.string :as str]
-    [clojure.java.io :as io])
+    [clojure.java.io :as io]
+    [tupelo.schema :as tsk])
   (:import
     [java.time LocalDate]
     [java.time.format DateTimeFormatter ]
@@ -46,13 +47,33 @@
 (s/defn wsv-parse-line
   "Parse WSV input line into an entity map"
   [line :- s/Str]
-  (let [line-prepped (it-> line
-                       (str/whitespace-collapse it)
-                       (str/split it #"\s+"))
-        [last first email color dob-str] line-prepped
-        dob          (mdy-str->LocalDate dob-str)
-        result       (vals->map last first email color dob)]
+  (let [[last first email color dob-str] (str/split line #"\s+")
+        dob    (mdy-str->LocalDate dob-str)
+        result (vals->map last first email color dob)]
     result))
+
+(s/defn psv-parse-line
+  "Parse PSV input line into an entity map"
+  [line :- s/Str]
+  (let [fields (it-> line
+                 (str/split it #"\|")
+                 (mapv str/whitespace-collapse it))
+        [last first email color dob-str] fields
+        dob    (mdy-str->LocalDate dob-str)
+        result (vals->map last first email color dob)]
+    result))
+
+(s/defn csv-parse-line
+  "Parse CSV input line into an entity map"
+  [line :- s/Str]
+  (let [fields (it-> line
+                 (str/split it #",")
+                 (mapv str/whitespace-collapse it))
+        [last first email color dob-str] fields
+        dob    (mdy-str->LocalDate dob-str)
+        result (vals->map last first email color dob)]
+    result))
+
 
 (s/defn file-ingest-prep :- [s/Str]
   [fname  :- s/Str]
@@ -62,13 +83,11 @@
     (str/split-lines it)
     (mapv str/whitespace-collapse it)))
 
-(s/defn wsv-parse
+(s/defn wsv-parse :- [tsk/KeyMap]
   [fname :- s/Str]
   (it-> fname
     (file-ingest-prep it)
-    (mapv wsv-parse-line it)
-    )
-  )
+    (mapv wsv-parse-line it)))
 
 (defn -main [& args]
   (println "main - enter")

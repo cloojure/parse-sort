@@ -65,13 +65,6 @@
   (is= (.format dtf (mdy-str->LocalDate "1/2/1999")) "1/2/1999")
   (is= (.format dtf (mdy-str->LocalDate "11/12/1999")) "11/12/1999")
 
-  (is= (wsv-parse-line "Last-3 First-3 lf33@aol.com C3 3/03/2003")
-    {:last  "Last-3",
-     :first "First-3",
-     :email "lf33@aol.com",
-     :color "C3",
-     :dob   (mdy-str->LocalDate "3-3-2003")})
-
   ; verify LocalDate values sort OK via standard comparator from clojure
   (let [d1 (LocalDate/parse "1999-01-01")
         d2 (LocalDate/parse "1999-01-02")]
@@ -79,15 +72,35 @@
       ["1999-01-01"
        "1999-01-02"]))
 
+  (is= (wsv-parse-line "Last-3 First-3 lf33@aol.com C3 3/03/2003")
+    {:last  "Last-3"
+     :first "First-3"
+     :email "lf33@aol.com"
+     :color "C3"
+     :dob   (mdy-str->LocalDate "3-3-2003")})
+
+  (is= (psv-parse-line "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003")
+    {:last  "Last-3"
+     :first "First-3"
+     :email "lf33@aol.com"
+     :color "C3"
+     :dob   (mdy-str->LocalDate "3-3-2003")})
+
+  (is= (csv-parse-line "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003")
+    {:last  "Last-3"
+     :first "First-3"
+     :email "lf33@aol.com"
+     :color "C3"
+     :dob   (mdy-str->LocalDate "3-3-2003")})
 
   ; parse the WSV file
   (is= (walk-LocalDate->str
          (wsv-parse "data-3.wsv"))
-    [{:last "Last-1", :first "First-1", :email "lf11@aol.com", :color "C1", :dob "<LocalDate 2001-01-01>"}
-     {:last "Last-2", :first "First-2", :email "lf22@aol.com", :color "C2", :dob "<LocalDate 2002-02-02>"}
-     {:last "Last-3", :first "First-3", :email "lf33@aol.com", :color "C3", :dob "<LocalDate 2003-03-03>"}
-     {:last "Last-4", :first "First-4", :email "lf44@aol.com", :color "C4", :dob "<LocalDate 2004-04-04>"}
-     {:last "Last-5", :first "First-5", :email "lf55@aol.com", :color "C5", :dob "<LocalDate 2005-05-05>"}])
+    [{:last "Last-1" :first "First-1" :email "lf11@aol.com" :color "C1" :dob "<LocalDate 2001-01-01>"}
+     {:last "Last-2" :first "First-2" :email "lf22@aol.com" :color "C2" :dob "<LocalDate 2002-02-02>"}
+     {:last "Last-3" :first "First-3" :email "lf33@aol.com" :color "C3" :dob "<LocalDate 2003-03-03>"}
+     {:last "Last-4" :first "First-4" :email "lf44@aol.com" :color "C4" :dob "<LocalDate 2004-04-04>"}
+     {:last "Last-5" :first "First-5" :email "lf55@aol.com" :color "C5" :dob "<LocalDate 2005-05-05>"}])
 
   )
 
