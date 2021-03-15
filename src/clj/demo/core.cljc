@@ -44,11 +44,14 @@
     result))
 
 (s/defn wsv-parse-line
-  "Parse WSV string into segments"
+  "Parse WSV input line into an entity map"
   [line :- s/Str]
-  (let [[last first email color dob-str] (str/split (str/whitespace-collapse line) #"\s+")
-        dob (mdy-str->LocalDate dob-str)
-        result (vals->map last first email color dob)]
+  (let [line-prepped (it-> line
+                       (str/whitespace-collapse it)
+                       (str/split it #"\s+"))
+        [last first email color dob-str] line-prepped
+        dob          (mdy-str->LocalDate dob-str)
+        result       (vals->map last first email color dob)]
     result))
 
 (s/defn wsv-parse
