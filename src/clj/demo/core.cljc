@@ -9,6 +9,12 @@
     [java.time LocalDate]
     ))
 
+;---------------------------------------------------------------------------------------------------
+; Assumptions:
+;   - well-formatted data (legal dates & charsets, etc)
+;   - no whitespace within any field (esp. name & color fields)
+;---------------------------------------------------------------------------------------------------
+
 (def field-names-orig
   ["LastName"
    "FirstName"

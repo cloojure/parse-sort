@@ -19,15 +19,16 @@
      :date-of-birth
      :last-name])
 
-  ; verify can parse sloppy date format
-  (is= (pad-leading-zero "2") "02")
-  (is= (pad-leading-zero "23") "23")
+  ; verify pad-left
+  (is= "02" (str/pad-left "2" 2 \0))
+  (is= "23" (str/pad-left "23" 2 \0))
 
+  ; verify can parse sloppy date format
   ; can accept 1 or 2 digit month/day, and either slash or hyphen separators
-  (is= (LocalDate/parse "1999-01-01")
-    (str->LocalDate "1/1/1999")
-    (str->LocalDate "1-1-1999")
-    (str->LocalDate "01/1/1999")
-    (str->LocalDate "1-01-1999"))
+  (is= (LocalDate/parse "1999-01-02")
+    (str->LocalDate "1/2/1999")
+    (str->LocalDate "1-2-1999")
+    (str->LocalDate "01/2/1999")
+    (str->LocalDate "1-02-1999"))
 
   )
