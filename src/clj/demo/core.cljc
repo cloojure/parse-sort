@@ -17,8 +17,21 @@
 ;   - well-formatted data (legal dates & charsets, etc)
 ;   - no whitespace within any field (esp. name & color fields)
 ;   - file suffix indicates format:  *.csv *.psv *.wsv
+;   - the problem definition did not mention a header row in the *SV files, so we assume there isn't one
 ;---------------------------------------------------------------------------------------------------
 
+;---------------------------------------------------------------------------------------------------
+(def global-state (atom {}))
+(defn entities-reset!
+  [] (swap! global-state glue {:entities []}))
+(entities-reset!) ; initial setup
+(s/defn entities-add!
+  [entities-new :- [tsk/KeyMap]]
+  (swap! global-state update-in [:entities] glue entities-new))
+(defn entities-get
+  [] (grab :entities @global-state))
+
+;---------------------------------------------------------------------------------------------------
 (def field-names-orig
   ["LastName"
    "FirstName"
@@ -98,6 +111,11 @@
     (it-> fname
       (file-ingest-prep it)
       (mapv parse-line-fn it))))
+
+(s/defn load-entities-from-file!
+  [fnames :- [s/Str]]
+  (doseq [fname fnames]
+    (entities-add! (parse-file fname))))
 
 (defn -main [& args]
   (println "main - enter")
