@@ -58,43 +58,80 @@
         result (LocalDate/parse ldstr)]
     result))
 
-(s/defn wsv-parse-line
-  "Parse WSV input line into an entity map"
+(s/defn attempt-tokenize-psv-line :- (s/->Maybe [s/Str])
+  "Will attempt to tokenize a line as PSV data. Upon success will return a
+  5-vec of strings, else nil."
   [line :- s/Str]
-  (let [[last first email color dob-str] (str/split line #"\s+")
-        dob    (mdy-str->LocalDate dob-str)
-        result (vals->map last first email color dob)]
-    result))
+  (let [tokens (it-> line
+                 (str/split it #"\|")
+                 (mapv str/whitespace-collapse it))]
+    (when (= 5 (count tokens))
+      tokens)))
 
-(s/defn psv-parse-line
+(s/defn attempt-tokenize-csv-line :- (s/->Maybe [s/Str])
+  "Will attempt to tokenize a line as CSV data. Upon success will return a
+  5-vec of strings, else nil."
+  [line :- s/Str]
+  (let [tokens (it-> line
+                 (str/split it #",")
+                 (mapv str/whitespace-collapse it))]
+    (when (= 5 (count tokens))
+      tokens)))
+
+(s/defn attempt-tokenize-wsv-line :- (s/->Maybe [s/Str])
+  "Will attempt to tokenize a line as WSV data. Upon success will return a
+  5-vec of strings, else nil."
+  [line :- s/Str]
+  (let [tokens (it-> line
+                 (str/split it #"\s+")
+                 (mapv str/whitespace-collapse it))]
+    (when (= 5 (count tokens))
+      tokens)))
+
+(s/defn parse-line-csv
   "Parse PSV input line into an entity map"
   [line :- s/Str]
-  (let [fields (it-> line
-                 (str/split it #"\|")
-                 (mapv str/whitespace-collapse it))
-        [last first email color dob-str] fields
+  (let [[last first email color dob-str] (attempt-tokenize-csv-line line)
         dob    (mdy-str->LocalDate dob-str)
         result (vals->map last first email color dob)]
     result))
 
-(s/defn csv-parse-line
-  "Parse CSV input line into an entity map"
+(s/defn parse-line-psv
+  "Parse PSV input line into an entity map"
   [line :- s/Str]
-  (let [fields (it-> line
-                 (str/split it #",")
-                 (mapv str/whitespace-collapse it))
-        [last first email color dob-str] fields
+  (let [[last first email color dob-str] (attempt-tokenize-psv-line line)
         dob    (mdy-str->LocalDate dob-str)
         result (vals->map last first email color dob)]
     result))
+
+(s/defn parse-line-wsv
+  "Parse WSV input line into an entity map"
+  [line :- s/Str]
+  (let [[last first email color dob-str] (attempt-tokenize-wsv-line line)
+        dob    (mdy-str->LocalDate dob-str)
+        result (vals->map last first email color dob)]
+    result))
+
+(s/defn parse-line-generic
+  "Parse any CSV, PSV, or WSV input line into an entity map"
+  [line :- s/Str]
+  (let [tokens (cond-it-> (attempt-tokenize-csv-line line)
+                 (nil? it) (attempt-tokenize-psv-line line)
+                 (nil? it) (attempt-tokenize-wsv-line line)
+                 (nil? it) (throw (ex-info "Could not parse line:" (vals->map line))))
+        [last first email color dob-str] tokens ; destructure
+        dob    (mdy-str->LocalDate dob-str)
+        result (vals->map last first email color dob)]
+    result))
+
 
 (s/defn file-name->parse-line-fn :- tsk/Fn
   [fname :- s/Str]
   (let [suffix (last (str/split (str/trim fname) #"\."))]
     (cond
-      (= suffix "csv") csv-parse-line
-      (= suffix "psv") psv-parse-line
-      (= suffix "wsv") wsv-parse-line
+      (= suffix "csv") parse-line-csv
+      (= suffix "psv") parse-line-psv
+      (= suffix "wsv") parse-line-wsv
       :else (throw (ex-info "unrecognized file suffix" (vals->map fname suffix))))))
 
 (s/defn parse-file :- [tsk/KeyMap]
