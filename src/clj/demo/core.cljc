@@ -44,7 +44,7 @@
   (mapv csk/->kebab-case-keyword field-names-orig))
 
 ; will output dates like `1/2/1999` and `11/12/1999`
-(def dtf (DateTimeFormatter/ofPattern "M/d/yyyy"))
+(def date-time-formatter-compact (DateTimeFormatter/ofPattern "M/d/yyyy"))
 
 (s/defn mdy-str->LocalDate :- LocalDate
   "Parse a sloppy date string like `M/D/YYYY` or `M-D-YYYY` into a LocalDate"
@@ -196,8 +196,31 @@
   [] (vec (sort-by identity compare-last-desc
             (entities-get))))
 
+(s/defn format-output-lines :- s/Str
+  "Return sorted entities as a single multi-line string"
+  [entities :- [tsk/KeyMap]]
+  (str/join \newline
+    (forv [entity entities]
+      (with-map-vals entity [last first email color dob]
+        (let [email (str/clip-text 20 email)
+              last  (str/clip-text 20 last)
+              first (str/clip-text 20 first)
+              color (str/clip-text 20 color)
+              dob   (.format  date-time-formatter-compact  dob)
+              line  (format "%20s %15s %20s %20s %20s " email dob last first color)]
+          line)))))
+
 (defn -main [& args]
   (println "main - enter")
   )
+
+
+
+
+
+
+
+
+
 
 

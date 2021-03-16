@@ -64,8 +64,8 @@
     (mdy-str->LocalDate "1-02-1999"))
 
   ; verify DateTimeFormatter
-  (is= (.format dtf (mdy-str->LocalDate "1/2/1999")) "1/2/1999")
-  (is= (.format dtf (mdy-str->LocalDate "11/12/1999")) "11/12/1999")
+  (is= (.format date-time-formatter-compact (mdy-str->LocalDate "1/2/1999")) "1/2/1999")
+  (is= (.format date-time-formatter-compact (mdy-str->LocalDate "11/12/1999")) "11/12/1999")
 
   ; verify LocalDate values sort OK via standard comparator from clojure
   (let [d1 (LocalDate/parse "1999-01-01")
@@ -195,9 +195,14 @@
        {:last "Last-1", :first "First-1", :email "lastFirstX@aol.com", :color "C1", :dob "<LocalDate 2001-01-01>"}
        {:last "Last-2", :first "First-2", :email "lastFirstX@aol.com", :color "C2", :dob "<LocalDate 2002-02-02>"}])))
 
+; Demonstrate sorting 3 ways
 (dotest
+  ; Load sample data from 3 files
   (entities-reset!)
   (load-entities-from-file! ["data-1.psv" "data-2.csv" "data-3.wsv"])
+
+  ;---------------------------------------------------------------------------------------------------
+  ; Sort by email descending, lastname ascending
   (is= (walk-LocalDate->str (entities-get-email-desc-last-asc))
     [{:last "Last-3", :first "First-3", :email "lastFirstY@aol.com", :color "C3", :dob "<LocalDate 2003-03-03>"}
      {:last "Last-4", :first "First-4", :email "lastFirstY@aol.com", :color "C4", :dob "<LocalDate 2004-04-04>"}
@@ -215,6 +220,12 @@
      {:last "Alpha", :first "Alan", :email "aalpha@demo.com", :color "Red", :dob "<LocalDate 1911-01-01>"}
      {:last "Allen", :first "Alpha", :email "aallen@gmail.com", :color "Color1", :dob "<LocalDate 1912-12-12>"}])
 
+  ; text formatted version in file
+  (is-nonblank-lines= (format-output-lines (entities-get-email-desc-last-asc))
+    (slurp (io/resource "expected-email-desc-last-asc.txt")))
+
+  ;---------------------------------------------------------------------------------------------------
+  ; Sort by date-of-birth ascending
   (is= (walk-LocalDate->str (entities-get-dob-asc))
     [{:last  "Edam", :first "Elon", :email "eedam@gmail.com", :color "Color5", :dob   "<LocalDate 1908-08-08>"}
      {:last  "Davis", :first "Dan", :email "addavis@gmail.com", :color "Color4", :dob   "<LocalDate 1909-09-09>"}
@@ -232,6 +243,12 @@
      {:last  "Last-4", :first "First-4", :email "lastFirstY@aol.com", :color "C4", :dob   "<LocalDate 2004-04-04>"}
      {:last  "Last-5", :first "First-5", :email "lastFirstY@aol.com", :color "C5", :dob   "<LocalDate 2005-05-05>"}])
 
+  ; text formatted version in file
+  (is-nonblank-lines= (format-output-lines (entities-get-dob-asc))
+    (slurp (io/resource "expected-dob-asc.txt")))
+
+  ;---------------------------------------------------------------------------------------------------
+  ; Sort by lastname descending
   (is= (walk-LocalDate->str (entities-get-last-desc))
     [{:last  "Last-5", :first "First-5", :email "lastFirstY@aol.com", :color "C5", :dob   "<LocalDate 2005-05-05>"}
      {:last  "Last-4", :first "First-4", :email "lastFirstY@aol.com", :color "C4", :dob   "<LocalDate 2004-04-04>"}
@@ -247,8 +264,13 @@
      {:last  "Bravo", :first "Bob", :email "bbravo@demo.com", :color "Green", :dob   "<LocalDate 1912-02-02>"}
      {:last  "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob   "<LocalDate 1911-11-11>"}
      {:last  "Alpha", :first "Alan", :email "aalpha@demo.com", :color "Red", :dob   "<LocalDate 1911-01-01>"}
-     {:last  "Allen", :first "Alpha", :email "aallen@gmail.com", :color "Color1", :dob   "<LocalDate 1912-12-12>"}]))
+     {:last  "Allen", :first "Alpha", :email "aallen@gmail.com", :color "Color1", :dob   "<LocalDate 1912-12-12>"}])
 
+  ; text formatted version in file
+  (is-nonblank-lines= (format-output-lines (entities-get-last-desc))
+    (slurp (io/resource "expected-last-desc.txt"))))
+
+;---------------------------------------------------------------------------------------------------
 (dotest
   ; If we know the line type, we can parse directly
   (is= {:last "Last-3" :first "First-3" :email "lf33@aol.com" :color "C3" :dob "<LocalDate 2003-03-03>"}
