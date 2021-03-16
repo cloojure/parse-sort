@@ -117,6 +117,49 @@
   (doseq [fname fnames]
     (entities-add! (parse-file fname))))
 
+(s/defn compare-email-asc :- s/Int
+  [a :- tsk/KeyMap
+   b :- tsk/KeyMap]
+  (compare (grab :email a) (grab :email b))) ; negated for desc sort
+
+(s/defn compare-email-desc :- s/Int
+  [a :- tsk/KeyMap
+   b :- tsk/KeyMap]
+  (- (compare-email-asc a b)))
+
+(s/defn compare-last-asc :- s/Int
+  [a :- tsk/KeyMap
+   b :- tsk/KeyMap]
+  (compare (grab :last a) (grab :last b)))
+
+(s/defn compare-last-desc :- s/Int
+  [a :- tsk/KeyMap
+   b :- tsk/KeyMap]
+  (-  (compare-last-asc a b)))
+
+(s/defn compare-dob-asc :- s/Int
+  [a :- tsk/KeyMap
+   b :- tsk/KeyMap]
+  (compare (grab :dob a) (grab :dob b)))
+
+(s/defn compare-email-desc-last-asc :- s/Int
+  [a :- tsk/KeyMap
+   b :- tsk/KeyMap]
+  (cond-it-> (compare-email-desc a b)
+    (zero? it) (compare-last-asc a b)))
+
+(s/defn entities-get-email-desc-last-asc :- [tsk/KeyMap]
+  [] (vec (sort-by identity compare-email-desc-last-asc
+            (entities-get))))
+
+(s/defn entities-get-dob-asc :- [tsk/KeyMap]
+  [] (vec (sort-by identity compare-dob-asc
+            (entities-get))))
+
+(s/defn entities-get-last-desc :- [tsk/KeyMap]
+  [] (vec (sort-by identity compare-last-desc
+            (entities-get))))
+
 (defn -main [& args]
   (println "main - enter")
   )
