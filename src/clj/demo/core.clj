@@ -150,6 +150,15 @@
   (doseq [fname fnames]
     (entities-add! (parse-file fname))))
 
+(s/defn load-data-line
+  "parses and loads a single data line into global state"
+  [line :- s/Str]
+  (it-> line
+    (str/whitespace-collapse it)
+    (parse-line-generic it)
+    (vector it)
+    (entities-add! it)))
+
 (s/defn compare-email-asc :- s/Int
   [a :- tsk/KeyMap
    b :- tsk/KeyMap]

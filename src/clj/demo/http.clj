@@ -9,6 +9,7 @@
     [io.pedestal.http.content-negotiation :as conneg]
     [io.pedestal.http.route :as route]
     [schema.core :as s]
+    [tupelo.base64url :as b64url]
     [tupelo.parse :as tpar]
     [tupelo.pedestal :as tp]
     [tupelo.pedestal.headers :as hdrs]
@@ -79,12 +80,23 @@
                               (not-found))]
               (assoc ctx :response response)))})
 
+(tp/definterceptor post-intc
+  {:leave (fn [ctx]
+            (nl)
+            (let-spy-pretty
+              [request    (unlazy (fetch-in ctx [:request]))
+               body-edn   (json->edn (grab :body request))
+               input-line (grab :line body-edn)
+               ]
+              (assoc ctx :response (ok "accepted"))))})
+
 ; NOTE!  a handler fn consumes a REQUEST (not a CONTEXT) !!!
 ; NOTE!  a handler fn produces a RESPONSE (not a :response in the CONTEXT) !!!
 
 (def routes
   (route/expand-routes
     #{
+      (tp/table-route {:verb :post :path "/records" :route-name :post-rec :interceptors [post-intc]})
       (tp/table-route {:verb :get :path "/echo" :route-name :echo :interceptors [echo-intc]})
       (tp/table-route {:verb :get :path "/greet" :route-name :greet :interceptors respond-hello-intc})
       }))

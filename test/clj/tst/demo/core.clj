@@ -303,6 +303,21 @@
     (walk-LocalDate->str (parse-line-generic "Last-3 First-3 lf33@aol.com C3 3/03/2003")))
   )
 
+(dotest
+  ; Load sample data from 3 individual lines
+  (entities-reset!)
+  (let [lines ["Last-1 First-1 lastFirstX@aol.com C1 1/01/2001"
+               "Baker, Bravo, bbaker@gmail.com, Color2, 11-11-1911 "
+               "Charlie | Chris | ccharlie@demo.com | Blue | 3/3/1913   "]]
+    (doseq [line lines]
+      (load-data-line line))
+
+    (is= (walk-LocalDate->str (entities-get))
+      [{:last "Last-1", :first "First-1", :email "lastFirstX@aol.com", :color "C1", :dob "<LocalDate 2001-01-01>"}
+       {:last "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob "<LocalDate 1911-11-11>"}
+       {:last "Charlie", :first "Chris", :email "ccharlie@demo.com", :color "Blue", :dob "<LocalDate 1913-03-03>"}])
+
+    ))
 
 
 
