@@ -7,8 +7,9 @@
     [tupelo.string :as str]
     [clojure.java.io :as io]
     [clojure.walk :as walk]
+    [tupelo.java-time :as tjt]
     [tupelo.schema :as tsk])
-  (:import
+(:import
     [java.time LocalDate ]
     [java.time.format DateTimeFormatter ]
     ))
@@ -110,14 +111,6 @@
   (is= (file-name->parse-line-fn "aaa.psv") psv-parse-line)
   (is= (file-name->parse-line-fn "aaa.wsv") wsv-parse-line)
   (is= (file-name->parse-line-fn "aaa.bbb.ccc.wsv") wsv-parse-line)
-
-  ; helper fn
-  (is= (file-ingest-prep "data-1.psv")
-    ["Alpha | Alan | aalpha@demo.com | Red | 1/1/1911"
-     "Bravo | Bob | bbravo@demo.com | Green | 2/2/1912"
-     "Charlie | Chris | ccharlie@demo.com | Blue | 3/3/1913"
-     "Delta | Don | ddelta@demo.com | DarkBlue | 4/4/1914"
-     "Echo | Eve | eecho@demo.com | Emerald | 5/5/1915"])
 
   ; parse the 3 file types
   (is= (walk-LocalDate->str (parse-file "data-1.psv"))

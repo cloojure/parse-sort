@@ -97,19 +97,15 @@
       (= suffix "wsv") wsv-parse-line
       :else (throw (ex-info "unrecognized file suffix" (vals->map fname suffix))))))
 
-(s/defn file-ingest-prep :- [s/Str]
-  [fname  :- s/Str]
-  (it-> fname
-    (io/resource it)
-    (slurp it)
-    (str/split-lines it)
-    (mapv str/whitespace-collapse it)))
-
 (s/defn parse-file :- [tsk/KeyMap]
+  "Given a filename, loads & parses into global state"
   [fname :- s/Str]
   (let [parse-line-fn (file-name->parse-line-fn fname)]
     (it-> fname
-      (file-ingest-prep it)
+      (io/resource it)
+      (slurp it)
+      (str/split-lines it)
+      (mapv str/whitespace-collapse it)
       (mapv parse-line-fn it))))
 
 (s/defn load-entities-from-file!
@@ -149,14 +145,17 @@
     (zero? it) (compare-last-asc a b)))
 
 (s/defn entities-get-email-desc-last-asc :- [tsk/KeyMap]
+  "Returns entities sorted by email descending, then lastname ascending"
   [] (vec (sort-by identity compare-email-desc-last-asc
             (entities-get))))
 
 (s/defn entities-get-dob-asc :- [tsk/KeyMap]
+  "Returns entities sorted by date-of-birth ascending"
   [] (vec (sort-by identity compare-dob-asc
             (entities-get))))
 
 (s/defn entities-get-last-desc :- [tsk/KeyMap]
+  "Returns entities sorted by lastname descending"
   [] (vec (sort-by identity compare-last-desc
             (entities-get))))
 
