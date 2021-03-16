@@ -84,7 +84,6 @@
       (= suffix "wsv") wsv-parse-line
       :else (throw (ex-info "unrecognized file suffix" (vals->map fname suffix))))))
 
-
 (s/defn file-ingest-prep :- [s/Str]
   [fname  :- s/Str]
   (it-> fname
@@ -93,10 +92,9 @@
     (str/split-lines it)
     (mapv str/whitespace-collapse it)))
 
-(s/defn wsv-parse-file :- [tsk/KeyMap]
+(s/defn parse-file :- [tsk/KeyMap]
   [fname :- s/Str]
-  (let [parse-line-fn (file-name->parse-line-fn fname)
-        ]
+  (let [parse-line-fn (file-name->parse-line-fn fname)]
     (it-> fname
       (file-ingest-prep it)
       (mapv parse-line-fn it))))
