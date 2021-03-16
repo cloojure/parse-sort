@@ -4,6 +4,7 @@
     [clojure.data.json :as json]
     [clojure.java.io :as io]
     [clojure.string :as str]
+    [demo.core :as core]
     [hiccup.core :as hiccup]
     [io.pedestal.http :as http]
     [io.pedestal.http.content-negotiation :as conneg]
@@ -82,13 +83,11 @@
 
 (tp/definterceptor post-intc
   {:leave (fn [ctx]
-            (nl)
-            (let-spy-pretty
-              [request    (unlazy (fetch-in ctx [:request]))
-               body-edn   (json->edn (grab :body request))
-               input-line (grab :line body-edn)
-               ]
-              (assoc ctx :response (ok "accepted"))))})
+            (let [request    (unlazy (fetch-in ctx [:request]))
+                  body-edn   (json->edn (grab :body request))
+                  input-line (grab :line body-edn)]
+              (core/load-data-line input-line)
+              (assoc ctx :response (ok "loaded"))))})
 
 ; NOTE!  a handler fn consumes a REQUEST (not a CONTEXT) !!!
 ; NOTE!  a handler fn produces a RESPONSE (not a :response in the CONTEXT) !!!

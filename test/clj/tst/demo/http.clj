@@ -39,32 +39,35 @@
 
 
 (dotest-focus
-  (let [data-line    "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003"
-        encoded-line (b64url/encode-str data-line)]
-    (is= encoded-line "TGFzdC0zIHwgICBGaXJzdC0zIHwgICBsZjMzQGFvbC5jb20gfCAgIEMzfCAgIDMvMDMvMjAwMw==")
-    (nl)
+  ; We want to discard Pedestal info msgs like:
+  ;   [main] INFO io.pedestal.http - {:msg "POST /records", :line 80}
+  (discarding-system-err
 
-    (comment
+    (let [data-line    "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003"
+          encoded-line (b64url/encode-str data-line)]
+      (is= encoded-line "TGFzdC0zIHwgICBGaXJzdC0zIHwgICBsZjMzQGFvbC5jb20gfCAgIEMzfCAgIDMvMDMvMjAwMw==")
+
+      (comment
+        (tp/with-service tst-service-map ; mock testing w/o actually starting jetty
+          ; native Pedestal way of testing response without spinning up a full Server
+          (let [resp (ptst/response-for (service-fn) :post (str "/records?line=" encoded-line))]
+            ; (nl) (spyx-pretty resp)
+            (is= (grab :status resp) 200)
+            (is-nonblank= (grab :body resp) "accepted"))))
+
       (tp/with-service tst-service-map ; mock testing w/o actually starting jetty
         ; native Pedestal way of testing response without spinning up a full Server
-        (let [resp (ptst/response-for (service-fn) :post (str "/records?line=" encoded-line))]
+        (let [resp (ptst/response-for (service-fn)
+                     :post (str "/records")
+                     :headers {"Content-Type" "application/json"}
+                     :body (edn->json {:line data-line})
+                     )
+              ]
           ; (nl) (spyx-pretty resp)
           (is= (grab :status resp) 200)
-          (is-nonblank= (grab :body resp) "accepted"))))
+          (is-nonblank= (grab :body resp) "loaded")))
 
-    (tp/with-service tst-service-map ; mock testing w/o actually starting jetty
-      ; native Pedestal way of testing response without spinning up a full Server
-      (let [resp (ptst/response-for (service-fn)
-                   :post (str "/records")
-                   :headers {"Content-Type" "application/json"}
-                   :body (edn->json {:line data-line})
-                   )
-            ]
-        ; (nl) (spyx-pretty resp)
-        (is= (grab :status resp) 200)
-        (is-nonblank= (grab :body resp) " accepted ")))
-
-    ))
+      )))
 
 (dotest
   (discarding-system-err
