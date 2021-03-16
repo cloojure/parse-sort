@@ -1,16 +1,11 @@
 (ns demo.http
   (:use tupelo.core)
   (:require
-    [clojure.data.json :as json]
-    [clojure.java.io :as io]
     [clojure.string :as str]
     [demo.core :as core]
-    [hiccup.core :as hiccup]
     [io.pedestal.http :as http]
-    [io.pedestal.http.content-negotiation :as conneg]
     [io.pedestal.http.route :as route]
     [schema.core :as s]
-    [tupelo.base64url :as b64url]
     [tupelo.parse :as tpar]
     [tupelo.pedestal :as tp]
     [tupelo.pedestal.headers :as hdrs]
@@ -29,31 +24,7 @@
   {:leave (fn [context]
             (assoc context :response (ok (pretty-str (tpar/edn-parsible context)))))})
 
-(defn canonicalize-name
-  [str-val]
-  (-> str-val
-    (str) ; convert nil => ""
-    (str/lower-case)
-    (str/trim)))
-
 (def supported-types [ hdrs/application-json ] )
-
-(def content-negotiation-intc
-  (validate tp/interceptor?
-    (conneg/negotiate-content supported-types)))
-
-(defn negotiated-type
-  "Returns the Content-Type determined by the content negotiation interceptor"
-  [ctx]
-  (get-in ctx [:request :accept :field] "text/plain"))
-
-(defn transform-content
-  [body-data content-type]
-  (condp = content-type
-    hdrs/text-html body-data
-    hdrs/text-plain body-data
-    hdrs/application-edn (pr-str body-data)
-    hdrs/application-json (json/write-str body-data)))
 
 (defn greeting-for
   "Returns a greeting for `user-name` if present, else a generic greeting. "
@@ -89,6 +60,12 @@
               (core/load-data-line input-line)
               (assoc ctx :response (ok "loaded"))))})
 
+(tp/definterceptor email-intc
+  {:leave (fn [ctx]
+            (assoc ctx :response (ok
+                                   (edn->json
+                                     (core/entities-get-email-desc-last-asc)))))})
+
 ; NOTE!  a handler fn consumes a REQUEST (not a CONTEXT) !!!
 ; NOTE!  a handler fn produces a RESPONSE (not a :response in the CONTEXT) !!!
 
@@ -96,8 +73,11 @@
   (route/expand-routes
     #{
       (tp/table-route {:verb :post :path "/records" :route-name :post-rec :interceptors [post-intc]})
+      (tp/table-route {:verb :get :path "/records/email" :route-name :email :interceptors [email-intc]})
+
       (tp/table-route {:verb :get :path "/echo" :route-name :echo :interceptors [echo-intc]})
       (tp/table-route {:verb :get :path "/greet" :route-name :greet :interceptors respond-hello-intc})
+
       }))
 
 (def base-service-map

@@ -2,13 +2,13 @@
   (:use demo.core tupelo.core tupelo.test)
   (:require
     [camel-snake-kebab.core :as csk]
-    [org.httpkit.client :as http]
-    [schema.core :as s]
-    [tupelo.string :as str]
     [clojure.java.io :as io]
     [clojure.walk :as walk]
+    [org.httpkit.client :as http]
+    [schema.core :as s]
     [tupelo.java-time :as tjt]
-    [tupelo.schema :as tsk])
+    [tupelo.schema :as tsk]
+    [tupelo.string :as str])
 (:import
     [java.time LocalDate ]
     [java.time.format DateTimeFormatter ]
@@ -18,18 +18,6 @@
   ["data-1.psv"
    "data-2.csv"
    "data-3.wsv"])
-
-;---------------------------------------------------------------------------------------------------
-; helper functions for testing
-(s/defn LocalDate->tagstr :- s/Str
-  [arg] (str "<LocalDate " arg ">"))
-
-(defn walk-LocalDate->str
-  [data]
-  (walk/postwalk (fn [item]
-                   (cond-it-> item
-                     (instance? LocalDate it) (LocalDate->tagstr it)))
-    data))
 
 (dotest
   (let [ld       (LocalDate/parse "1999-01-02")

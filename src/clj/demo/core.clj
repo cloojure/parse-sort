@@ -2,11 +2,13 @@
   (:use tupelo.core)
   (:require
     [camel-snake-kebab.core :as csk]
+    [clojure.java.io :as io]
+    [clojure.walk :as walk]
     [org.httpkit.client :as http]
     [schema.core :as s]
     [tupelo.string :as str]
-    [clojure.java.io :as io]
-    [tupelo.schema :as tsk])
+    [tupelo.schema :as tsk]
+    )
   (:import
     [java.time LocalDate]
     [java.time.format DateTimeFormatter ]
@@ -30,6 +32,18 @@
   (swap! global-state update-in [:entities] glue entities-new))
 (defn entities-get
   [] (grab :entities @global-state))
+
+;---------------------------------------------------------------------------------------------------
+; helper functions for testing
+(s/defn LocalDate->tagstr :- s/Str
+  [arg] (str "<LocalDate " arg ">"))
+
+(defn walk-LocalDate->str
+  [data]
+  (walk/postwalk (fn [item]
+                   (cond-it-> item
+                     (instance? LocalDate it) (LocalDate->tagstr it)))
+    data))
 
 ;---------------------------------------------------------------------------------------------------
 (def field-names-orig
