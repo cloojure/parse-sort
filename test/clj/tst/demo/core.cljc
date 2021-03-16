@@ -85,53 +85,14 @@
   (is= [] (entities-get)))
 
 (dotest
-  (is= nil (attempt-tokenize-psv-line "Last-3 First-3 lf33@aol.com C3 3/03/2003"))
-  (is= nil (attempt-tokenize-psv-line "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003"))
-  (is= (attempt-tokenize-psv-line "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003")
-    ["Last-3" "First-3" "lf33@aol.com" "C3" "3/03/2003"])
-
-  (is= nil (attempt-tokenize-csv-line "Last-3 First-3 lf33@aol.com C3 3/03/2003"))
-  (is= nil (attempt-tokenize-csv-line "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003"))
-  (is= (attempt-tokenize-csv-line "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003")
-    ["Last-3" "First-3" "lf33@aol.com" "C3" "3/03/2003"])
-
-  (is= nil (attempt-tokenize-wsv-line "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003"))
-  (is= nil (attempt-tokenize-wsv-line "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003"))
-  (is= (attempt-tokenize-wsv-line "Last-3 First-3 lf33@aol.com C3 3/03/2003")
-    ["Last-3" "First-3" "lf33@aol.com" "C3" "3/03/2003"])
-
-  (is= {:last "Last-3" :first "First-3" :email "lf33@aol.com" :color "C3" :dob "<LocalDate 2003-03-03>"}
-    (walk-LocalDate->str (parse-line-csv "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003"))
-    (walk-LocalDate->str (parse-line-psv "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003"))
-    (walk-LocalDate->str (parse-line-wsv "Last-3 First-3 lf33@aol.com C3 3/03/2003")))
-
-  (is= {:last "Last-3" :first "First-3" :email "lf33@aol.com" :color "C3" :dob "<LocalDate 2003-03-03>"}
-    (walk-LocalDate->str (parse-line-generic "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003"))
-    (walk-LocalDate->str (parse-line-generic "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003"))
-    (walk-LocalDate->str (parse-line-generic "Last-3 First-3 lf33@aol.com C3 3/03/2003")))
-  )
-
-(dotest
   (is= (parse-line-wsv "Last-3 First-3 lf33@aol.com C3 3/03/2003")
-    {:last  "Last-3"
-     :first "First-3"
-     :email "lf33@aol.com"
-     :color "C3"
-     :dob   (mdy-str->LocalDate "3-3-2003")})
+    {:last  "Last-3" :first "First-3" :email "lf33@aol.com" :color "C3" :dob   (mdy-str->LocalDate "3-3-2003")})
 
   (is= (parse-line-psv "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003")
-    {:last  "Last-3"
-     :first "First-3"
-     :email "lf33@aol.com"
-     :color "C3"
-     :dob   (mdy-str->LocalDate "3-3-2003")})
+    {:last  "Last-3" :first "First-3" :email "lf33@aol.com" :color "C3" :dob   (mdy-str->LocalDate "3-3-2003")})
 
   (is= (parse-line-csv "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003")
-    {:last  "Last-3"
-     :first "First-3"
-     :email "lf33@aol.com"
-     :color "C3"
-     :dob   (mdy-str->LocalDate "3-3-2003")})
+    {:last  "Last-3" :first "First-3" :email "lf33@aol.com" :color "C3" :dob   (mdy-str->LocalDate "3-3-2003")})
 
   (throws? (file-name->parse-line-fn "aaa.xxx"))
   (is= (file-name->parse-line-fn "aaa.csv") parse-line-csv)
@@ -286,8 +247,38 @@
      {:last  "Bravo", :first "Bob", :email "bbravo@demo.com", :color "Green", :dob   "<LocalDate 1912-02-02>"}
      {:last  "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob   "<LocalDate 1911-11-11>"}
      {:last  "Alpha", :first "Alan", :email "aalpha@demo.com", :color "Red", :dob   "<LocalDate 1911-01-01>"}
-     {:last  "Allen", :first "Alpha", :email "aallen@gmail.com", :color "Color1", :dob   "<LocalDate 1912-12-12>"}])
+     {:last  "Allen", :first "Alpha", :email "aallen@gmail.com", :color "Color1", :dob   "<LocalDate 1912-12-12>"}]))
 
+(dotest
+  ; If we know the line type, we can parse directly
+  (is= {:last "Last-3" :first "First-3" :email "lf33@aol.com" :color "C3" :dob "<LocalDate 2003-03-03>"}
+    (walk-LocalDate->str (parse-line-csv "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003"))
+    (walk-LocalDate->str (parse-line-psv "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003"))
+    (walk-LocalDate->str (parse-line-wsv "Last-3 First-3 lf33@aol.com C3 3/03/2003")))
+
+  ; tokenize a CSV line or return nil
+  (is= nil (attempt-tokenize-csv-line "Last-3 First-3 lf33@aol.com C3 3/03/2003"))
+  (is= nil (attempt-tokenize-csv-line "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003"))
+  (is= (attempt-tokenize-csv-line "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003")
+    ["Last-3" "First-3" "lf33@aol.com" "C3" "3/03/2003"])
+
+  ; tokenize a PSV line or return nil
+  (is= nil (attempt-tokenize-psv-line "Last-3 First-3 lf33@aol.com C3 3/03/2003"))
+  (is= nil (attempt-tokenize-psv-line "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003"))
+  (is= (attempt-tokenize-psv-line "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003")
+    ["Last-3" "First-3" "lf33@aol.com" "C3" "3/03/2003"])
+
+  ; tokenize a WSV line or return nil
+  (is= nil (attempt-tokenize-wsv-line "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003"))
+  (is= nil (attempt-tokenize-wsv-line "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003"))
+  (is= (attempt-tokenize-wsv-line "Last-3 First-3 lf33@aol.com C3 3/03/2003")
+    ["Last-3" "First-3" "lf33@aol.com" "C3" "3/03/2003"])
+
+  ; auto-detects line type using a cascade of attempt-tokenize-*-line functions
+  (is= {:last "Last-3" :first "First-3" :email "lf33@aol.com" :color "C3" :dob "<LocalDate 2003-03-03>"}
+    (walk-LocalDate->str (parse-line-generic "Last-3 |   First-3 |   lf33@aol.com |   C3|   3/03/2003"))
+    (walk-LocalDate->str (parse-line-generic "Last-3,  First-3 ,   lf33@aol.com ,   C3,   3/03/2003"))
+    (walk-LocalDate->str (parse-line-generic "Last-3 First-3 lf33@aol.com C3 3/03/2003")))
   )
 
 
