@@ -174,7 +174,6 @@
   (cond-it-> (compare-email-desc a b)
     (zero? it) (compare-last-asc a b)))
 
-
 (dotest
   (let [greeks [{:last "Alpha", :first "Alan", :email "aalpha@demo.com", :color "Red", :dob "<LocalDate 1911-01-01>"}
                 {:last "Bravo", :first "Bob", :email "bbravo@demo.com", :color "Green", :dob "<LocalDate 1912-02-02>"}
