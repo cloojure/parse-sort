@@ -93,9 +93,26 @@
      :color "C3"
      :dob   (mdy-str->LocalDate "3-3-2003")})
 
-  ; parse the WSV file
-  (is= (walk-LocalDate->str
-         (wsv-parse "data-3.wsv"))
+  (throws? (file-name->parse-line-fn "aaa.csv9") )
+  (is= (file-name->parse-line-fn "aaa.csv") csv-parse-line)
+  (is= (file-name->parse-line-fn "aaa.psv") psv-parse-line)
+  (is= (file-name->parse-line-fn "aaa.wsv") wsv-parse-line)
+  (is= (file-name->parse-line-fn "aaa.bbb.ccc.wsv") wsv-parse-line)
+
+  ; parse the 3 file types
+  (is= (walk-LocalDate->str (wsv-parse-file "data-1.psv"))
+    [{:last "Alpha", :first "Alan", :email "aalpha@demo.com", :color "Red", :dob "<LocalDate 1911-01-01>"}
+     {:last "Bravo", :first "Bob", :email "bbravo@demo.com", :color "Green", :dob "<LocalDate 1912-02-02>"}
+     {:last "Charlie", :first "Chris", :email "ccharlie@demo.com", :color "Blue", :dob "<LocalDate 1913-03-03>"}
+     {:last "Delta", :first "Don", :email "ddelta@demo.com", :color "DarkBlue", :dob "<LocalDate 1914-04-04>"}
+     {:last "Echo", :first "Eve", :email "eecho@demo.com", :color "Emerald", :dob "<LocalDate 1915-05-05>"}])
+  (is= (walk-LocalDate->str (wsv-parse-file "data-2.csv"))
+    [{:last "Allen", :first "Alpha", :email "aallen@gmail.com", :color "Color1", :dob "<LocalDate 1912-12-12>"}
+     {:last "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob "<LocalDate 1911-11-11>"}
+     {:last "Case", :first "Carl", :email "ccase@gmail.com", :color "Color3", :dob "<LocalDate 1910-10-10>"}
+     {:last "Davis", :first "Dan", :email "addavis@gmail.com", :color "Color4", :dob "<LocalDate 1909-09-09>"}
+     {:last "Edam", :first "Elon", :email "eedam@gmail.com", :color "Color5", :dob "<LocalDate 1908-08-08>"}])
+  (is= (walk-LocalDate->str (wsv-parse-file "data-3.wsv"))
     [{:last "Last-1" :first "First-1" :email "lf11@aol.com" :color "C1" :dob "<LocalDate 2001-01-01>"}
      {:last "Last-2" :first "First-2" :email "lf22@aol.com" :color "C2" :dob "<LocalDate 2002-02-02>"}
      {:last "Last-3" :first "First-3" :email "lf33@aol.com" :color "C3" :dob "<LocalDate 2003-03-03>"}

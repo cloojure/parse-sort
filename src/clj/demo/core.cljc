@@ -16,6 +16,7 @@
 ; Assumptions:
 ;   - well-formatted data (legal dates & charsets, etc)
 ;   - no whitespace within any field (esp. name & color fields)
+;   - file suffix indicates format:  *.csv *.psv *.wsv
 ;---------------------------------------------------------------------------------------------------
 
 (def field-names-orig
@@ -74,6 +75,15 @@
         result (vals->map last first email color dob)]
     result))
 
+(s/defn file-name->parse-line-fn :- tsk/Fn
+  [fname :- s/Str]
+  (let [suffix (last (str/split (str/trim fname) #"\."))]
+    (cond
+      (= suffix "csv") csv-parse-line
+      (= suffix "psv") psv-parse-line
+      (= suffix "wsv") wsv-parse-line
+      :else (throw (ex-info "unrecognized file suffix" (vals->map fname suffix))))))
+
 
 (s/defn file-ingest-prep :- [s/Str]
   [fname  :- s/Str]
@@ -83,11 +93,13 @@
     (str/split-lines it)
     (mapv str/whitespace-collapse it)))
 
-(s/defn wsv-parse :- [tsk/KeyMap]
+(s/defn wsv-parse-file :- [tsk/KeyMap]
   [fname :- s/Str]
-  (it-> fname
-    (file-ingest-prep it)
-    (mapv wsv-parse-line it)))
+  (let [parse-line-fn (file-name->parse-line-fn fname)
+        ]
+    (it-> fname
+      (file-ingest-prep it)
+      (mapv parse-line-fn it))))
 
 (defn -main [& args]
   (println "main - enter")
