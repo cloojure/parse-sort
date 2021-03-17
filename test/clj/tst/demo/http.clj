@@ -39,7 +39,7 @@
       (is (not-empty? (str/fgrep "GET /greet" sys-err-str)))))) ; eg '[qtp1379526008-32] INFO io.pedestal.http - {:msg "GET /greet", :line 80}'
 
 
-(dotest
+(dotest-focus
   (discarding-system-err
     ; We want to discard Pedestal info msgs like:
     ;   [main] INFO io.pedestal.http - {:msg "POST /records", :line 80}
@@ -59,6 +59,8 @@
 
       ; Load sample data from 3 individual lines & verify
       (core/entities-reset!)
+
+      ; POST 3 records
       (let [lines ["Last-1 First-1 lastFirstX@aol.com C1 1/01/2001"
                    "Baker, Bravo, bbaker@gmail.com, Color2, 11-11-1911 "
                    "Charlie | Chris | ccharlie@demo.com | Blue | 3/3/1913   "]]
@@ -75,31 +77,35 @@
            {:last "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob "<LocalDate 1911-11-11>"}
            {:last "Charlie", :first "Chris", :email "ccharlie@demo.com", :color "Blue", :dob "<LocalDate 1913-03-03>"}]))
 
-      )))
-
-(dotest
-  (discarding-system-err
-    (tp/with-service tst-service-map ; mock testing w/o actually starting jetty
-
-      ; native Pedestal way of testing response without spinning up a full Server
-      (let [resp (ptst/response-for (service-fn) :get "/greet?name=Michael")]
+      ; verify sorted by email desc, last asc
+      (let [resp (ptst/response-for (service-fn) :get (str "/records/email"))
+            body (json->edn (grab :body resp))]
         (is= (grab :status resp) 200)
-        (is-nonblank= (grab :body resp) "Hello, Michael!"))
+        (is= body
+          [{:last "Last-1", :first "First-1", :email "lastFirstX@aol.com", :color "C1", :dob "1/1/2001"}
+           {:last "Charlie", :first "Chris", :email "ccharlie@demo.com", :color "Blue", :dob "3/3/1913"}
+           {:last "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob "11/11/1911"}]
+          ))
 
-      ; Tupelo-Pedestal shortcut
-      (let [resp (tp/service-get "/greet?name=")]
+      ; verify sorted by DOB asc
+      (let [resp (ptst/response-for (service-fn) :get (str "/records/birthdate"))
+            body (json->edn (grab :body resp))]
         (is= (grab :status resp) 200)
-        (is-nonblank= (grab :body resp) "Hello, World!"))
+        (is= body
+          [{:last "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob "11/11/1911"}
+           {:last "Charlie", :first "Chris", :email "ccharlie@demo.com", :color "Blue", :dob "3/3/1913"}
+           {:last "Last-1", :first "First-1", :email "lastFirstX@aol.com", :color "C1", :dob "1/1/2001"}]))
 
-      (let [resp (tp/service-get "/greet?name=  ")]
+      ; verify sorted by lastname asc
+      (let [resp (ptst/response-for (service-fn) :get (str "/records/name"))
+            body (json->edn (grab :body resp))]
         (is= (grab :status resp) 200)
-        (is-nonblank= (grab :body resp) "Hello, World!"))
+        (is= body
+          [{:last "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob "11/11/1911"}
+           {:last "Charlie", :first "Chris", :email "ccharlie@demo.com", :color "Blue", :dob "3/3/1913"}
+           {:last "Last-1", :first "First-1", :email "lastFirstX@aol.com", :color "C1", :dob "1/1/2001"}])))))
 
-      (let [resp (tp/service-get "/greet")]
-        (is= (grab :status resp) 200)
-        (is-nonblank= (grab :body resp) "Hello, World!"))
 
-      )))
 
 
 

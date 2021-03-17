@@ -62,22 +62,35 @@
 
 (tp/definterceptor email-intc
   {:leave (fn [ctx]
-            (assoc ctx :response (ok
-                                   (edn->json
-                                     (core/entities-get-email-desc-last-asc)))))})
+            (let [body-str (core/walk-format-LocalDate-compact
+                             (core/entities-get-email-desc-last-asc))
+                  resp     (it-> (ok (edn->json body-str))
+                             (assoc-in it [:headers hdrs/content-type] hdrs/application-json))]
+              (assoc ctx :response resp)))})
 
-; NOTE!  a handler fn consumes a REQUEST (not a CONTEXT) !!!
-; NOTE!  a handler fn produces a RESPONSE (not a :response in the CONTEXT) !!!
+(tp/definterceptor dob-intc
+  {:leave (fn [ctx]
+            (let [body-str (core/walk-format-LocalDate-compact
+                             (core/entities-get-dob-asc))
+                  resp     (it-> (ok (edn->json body-str))
+                             (assoc-in it [:headers hdrs/content-type] hdrs/application-json))]
+              (assoc ctx :response resp)))})
+
+(tp/definterceptor last-intc
+  {:leave (fn [ctx]
+            (let [body-str (core/walk-format-LocalDate-compact
+                             (core/entities-get-dob-asc))
+                  resp     (it-> (ok (edn->json body-str))
+                             (assoc-in it [:headers hdrs/content-type] hdrs/application-json))]
+              (assoc ctx :response resp)))})
 
 (def routes
   (route/expand-routes
     #{
       (tp/table-route {:verb :post :path "/records" :route-name :post-rec :interceptors [post-intc]})
       (tp/table-route {:verb :get :path "/records/email" :route-name :email :interceptors [email-intc]})
-
-      (tp/table-route {:verb :get :path "/echo" :route-name :echo :interceptors [echo-intc]})
-      (tp/table-route {:verb :get :path "/greet" :route-name :greet :interceptors respond-hello-intc})
-
+      (tp/table-route {:verb :get :path "/records/birthdate" :route-name :dob :interceptors [dob-intc]})
+      (tp/table-route {:verb :get :path "/records/name" :route-name :last :interceptors [last-intc]})
       }))
 
 (def base-service-map

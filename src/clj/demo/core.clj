@@ -34,28 +34,7 @@
   [] (grab :entities @global-state))
 
 ;---------------------------------------------------------------------------------------------------
-; helper functions for testing
-(s/defn LocalDate->tagstr :- s/Str
-  [arg] (str "<LocalDate " arg ">"))
-
-(defn walk-LocalDate->str
-  [data]
-  (walk/postwalk (fn [item]
-                   (cond-it-> item
-                     (instance? LocalDate it) (LocalDate->tagstr it)))
-    data))
-
-;---------------------------------------------------------------------------------------------------
-(def field-names-orig
-  ["LastName"
-   "FirstName"
-   "Email"
-   "FavoriteColor"
-   "DateOfBirth"
-   "LastName"])
-
-(def field-names
-  (mapv csk/->kebab-case-keyword field-names-orig))
+; Date parsing/formatting
 
 ; will output dates like `1/2/1999` and `11/12/1999`
 (def date-time-formatter-compact (DateTimeFormatter/ofPattern "M/d/yyyy"))
@@ -71,6 +50,41 @@
         ldstr  (format "%s-%s-%s" year month day)
         result (LocalDate/parse ldstr)]
     result))
+
+(s/defn format-LocalDate-compact :- s/Str
+  "Formats a LocalDate into a compact format like  `1/2/1999` and `11/12/1999`"
+  [localdate :- LocalDate]
+  (.format date-time-formatter-compact localdate))
+
+; helper functions for testing
+(s/defn LocalDate->tagstr :- s/Str
+  [arg] (str "<LocalDate " arg ">"))
+
+(defn walk-LocalDate->str
+  [data]
+  (walk/postwalk (fn [item]
+                   (cond-it-> item
+                     (instance? LocalDate it) (LocalDate->tagstr it)))
+    data))
+
+(defn walk-format-LocalDate-compact
+  [data]
+  (walk/postwalk (fn [item]
+                   (cond-it-> item
+                     (instance? LocalDate it) (format-LocalDate-compact it)))
+    data))
+
+;---------------------------------------------------------------------------------------------------
+(def field-names-orig
+  ["LastName"
+   "FirstName"
+   "Email"
+   "FavoriteColor"
+   "DateOfBirth"
+   "LastName"])
+
+(def field-names
+  (mapv csk/->kebab-case-keyword field-names-orig))
 
 (s/defn attempt-tokenize-psv-line :- (s/->Maybe [s/Str])
   "Will attempt to tokenize a line as PSV data. Upon success will return a
@@ -229,7 +243,7 @@
               last  (str/clip-text 20 last)
               first (str/clip-text 20 first)
               color (str/clip-text 20 color)
-              dob   (.format  date-time-formatter-compact  dob)
+              dob   (format-LocalDate-compact dob)
               line  (format "%20s %15s %20s %20s %20s " email dob last first color)]
           line)))))
 
