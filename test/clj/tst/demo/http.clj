@@ -42,6 +42,10 @@
       ; Load sample data from 3 individual lines & verify
       (core/entities-reset!)
 
+      ;*****************************************************************************
+      ;*** Step 2: REST API - POST
+      ;*****************************************************************************
+
       ; POST 3 records
       (let [lines ["Last-1 First-1 lastFirstX@aol.com C1 1/01/2001"
                    "Baker, Bravo, bbaker@gmail.com, Color2, 11-11-1911 "
@@ -99,7 +103,9 @@
 
     (tp/with-service tst-service-map ; mock testing w/o actually starting jetty
 
-
+      ;*****************************************************************************
+      ;*** Step 2: REST API - GET
+      ;*****************************************************************************
 
       ; verify sorted by email desc, last asc
       (let [resp (ptst/response-for (service-fn) :get (str "/records/email"))

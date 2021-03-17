@@ -108,6 +108,9 @@
      {:last "Last-4" :first "First-4" :email "lastFirstY@aol.com" :color "C4" :dob "<LocalDate 2004-04-04>"}
      {:last "Last-5" :first "First-5" :email "lastFirstY@aol.com" :color "C5" :dob "<LocalDate 2005-05-05>"}])
 
+  ;*****************************************************************************
+  ;*** Step 1 Input: Load the 3 file types
+  ;*****************************************************************************
   (entities-reset!)
   (load-entities-from-file! ["data-1.psv" "data-2.csv" "data-3.wsv"])
   (is= (walk-LocalDate->str (entities-get))
@@ -188,6 +191,10 @@
   ; Load sample data from 3 files
   (entities-reset!)
   (load-entities-from-file! ["data-1.psv" "data-2.csv" "data-3.wsv"])
+
+  ;*****************************************************************************
+  ;*** Step 1 Output: Load the 3 file types
+  ;*****************************************************************************
 
   ;---------------------------------------------------------------------------------------------------
   ; Sort by email descending, lastname ascending
