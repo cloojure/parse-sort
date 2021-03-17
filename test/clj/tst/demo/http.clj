@@ -83,14 +83,87 @@
             body (json->edn (grab :body resp))]
         (is= (grab :status resp) 200)
         (is= body
-          [{:last "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob "11/11/1911"}
+          [{:last "Last-1", :first "First-1", :email "lastFirstX@aol.com", :color "C1", :dob "1/1/2001"}
            {:last "Charlie", :first "Chris", :email "ccharlie@demo.com", :color "Blue", :dob "3/3/1913"}
-           {:last "Last-1", :first "First-1", :email "lastFirstX@aol.com", :color "C1", :dob "1/1/2001"}])))))
+           {:last "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob "11/11/1911"}])))))
+
+
+(dotest
+  ; Load sample data from 3 files
+  (core/entities-reset!)
+  (core/load-entities-from-file! ["data-1.psv" "data-2.csv" "data-3.wsv"])
+
+  (discarding-system-err
+    ; ^^^ use this to discard Pedestal info msgs like:
+    ;         [main] INFO io.pedestal.http - {:msg "POST /records", :line 80}
+
+    (tp/with-service tst-service-map ; mock testing w/o actually starting jetty
 
 
 
+      ; verify sorted by email desc, last asc
+      (let [resp (ptst/response-for (service-fn) :get (str "/records/email"))
+            body (vec (json->edn (grab :body resp)))]
+        (is= (grab :status resp) 200)
+        (is= body
+          [{:last  "Last-3", :first "First-3", :email "lastFirstY@aol.com", :color "C3", :dob   "3/3/2003"}
+           {:last  "Last-4", :first "First-4", :email "lastFirstY@aol.com", :color "C4", :dob   "4/4/2004"}
+           {:last  "Last-5", :first "First-5", :email "lastFirstY@aol.com", :color "C5", :dob   "5/5/2005"}
+           {:last  "Last-1", :first "First-1", :email "lastFirstX@aol.com", :color "C1", :dob   "1/1/2001"}
+           {:last  "Last-2", :first "First-2", :email "lastFirstX@aol.com", :color "C2", :dob   "2/2/2002"}
+           {:last  "Edam", :first "Elon", :email "eedam@gmail.com", :color "Color5", :dob   "8/8/1908"}
+           {:last  "Echo", :first "Eve", :email "eecho@demo.com", :color "Emerald", :dob   "5/5/1915"}
+           {:last  "Delta", :first "Don", :email "ddelta@demo.com", :color "DarkBlue", :dob   "4/4/1914"}
+           {:last  "Charlie", :first "Chris", :email "ccharlie@demo.com", :color "Blue", :dob   "3/3/1913"}
+           {:last  "Case", :first "Carl", :email "ccase@gmail.com", :color "Color3", :dob   "10/10/1910"}
+           {:last  "Bravo", :first "Bob", :email "bbravo@demo.com", :color "Green", :dob   "2/2/1912"}
+           {:last  "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob   "11/11/1911"}
+           {:last  "Davis", :first "Dan", :email "addavis@gmail.com", :color "Color4", :dob   "9/9/1909"}
+           {:last  "Alpha", :first "Alan", :email "aalpha@demo.com", :color "Red", :dob   "1/1/1911"}
+           {:last  "Allen", :first "Alpha", :email "aallen@gmail.com", :color "Color1", :dob   "12/12/1912"}]))
 
+      ; verify sorted by DOB asc
+      (let [resp (ptst/response-for (service-fn) :get (str "/records/birthdate"))
+            body (vec (json->edn (grab :body resp)))]
+        (is= (grab :status resp) 200)
+        (is= body
+          [{:last  "Edam", :first "Elon", :email "eedam@gmail.com", :color "Color5", :dob   "8/8/1908"}
+           {:last  "Davis", :first "Dan", :email "addavis@gmail.com", :color "Color4", :dob   "9/9/1909"}
+           {:last  "Case", :first "Carl", :email "ccase@gmail.com", :color "Color3", :dob   "10/10/1910"}
+           {:last  "Alpha", :first "Alan", :email "aalpha@demo.com", :color "Red", :dob   "1/1/1911"}
+           {:last  "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob   "11/11/1911"}
+           {:last  "Bravo", :first "Bob", :email "bbravo@demo.com", :color "Green", :dob   "2/2/1912"}
+           {:last  "Allen", :first "Alpha", :email "aallen@gmail.com", :color "Color1", :dob   "12/12/1912"}
+           {:last  "Charlie", :first "Chris", :email "ccharlie@demo.com", :color "Blue", :dob   "3/3/1913"}
+           {:last  "Delta", :first "Don", :email "ddelta@demo.com", :color "DarkBlue", :dob   "4/4/1914"}
+           {:last  "Echo", :first "Eve", :email "eecho@demo.com", :color "Emerald", :dob   "5/5/1915"}
+           {:last  "Last-1", :first "First-1", :email "lastFirstX@aol.com", :color "C1", :dob   "1/1/2001"}
+           {:last  "Last-2", :first "First-2", :email "lastFirstX@aol.com", :color "C2", :dob   "2/2/2002"}
+           {:last  "Last-3", :first "First-3", :email "lastFirstY@aol.com", :color "C3", :dob   "3/3/2003"}
+           {:last  "Last-4", :first "First-4", :email "lastFirstY@aol.com", :color "C4", :dob   "4/4/2004"}
+           {:last  "Last-5", :first "First-5", :email "lastFirstY@aol.com", :color "C5", :dob   "5/5/2005"}]))
 
+      ; verify sorted by lastname asc
+      (let [resp (ptst/response-for (service-fn) :get (str "/records/name"))
+            body (vec (json->edn (grab :body resp)))]
+        (is= (grab :status resp) 200)
+        (is= body
+          [{:last  "Last-5", :first "First-5", :email "lastFirstY@aol.com", :color "C5", :dob   "5/5/2005"}
+           {:last  "Last-4", :first "First-4", :email "lastFirstY@aol.com", :color "C4", :dob   "4/4/2004"}
+           {:last  "Last-3", :first "First-3", :email "lastFirstY@aol.com", :color "C3", :dob   "3/3/2003"}
+           {:last  "Last-2", :first "First-2", :email "lastFirstX@aol.com", :color "C2", :dob   "2/2/2002"}
+           {:last  "Last-1", :first "First-1", :email "lastFirstX@aol.com", :color "C1", :dob   "1/1/2001"}
+           {:last  "Edam", :first "Elon", :email "eedam@gmail.com", :color "Color5", :dob   "8/8/1908"}
+           {:last  "Echo", :first "Eve", :email "eecho@demo.com", :color "Emerald", :dob   "5/5/1915"}
+           {:last  "Delta", :first "Don", :email "ddelta@demo.com", :color "DarkBlue", :dob   "4/4/1914"}
+           {:last  "Davis", :first "Dan", :email "addavis@gmail.com", :color "Color4", :dob   "9/9/1909"}
+           {:last  "Charlie", :first "Chris", :email "ccharlie@demo.com", :color "Blue", :dob   "3/3/1913"}
+           {:last  "Case", :first "Carl", :email "ccase@gmail.com", :color "Color3", :dob   "10/10/1910"}
+           {:last  "Bravo", :first "Bob", :email "bbravo@demo.com", :color "Green", :dob   "2/2/1912"}
+           {:last  "Baker", :first "Bravo", :email "bbaker@gmail.com", :color "Color2", :dob   "11/11/1911"}
+           {:last  "Alpha", :first "Alan", :email "aalpha@demo.com", :color "Red", :dob   "1/1/1911"}
+           {:last  "Allen", :first "Alpha", :email "aallen@gmail.com", :color "Color1", :dob   "12/12/1912"}]))))
+  )
 
 
 

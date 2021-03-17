@@ -79,7 +79,7 @@
 (tp/definterceptor last-intc
   {:leave (fn [ctx]
             (let [body-str (core/walk-format-LocalDate-compact
-                             (core/entities-get-dob-asc))
+                             (core/entities-get-last-desc))
                   resp     (it-> (ok (edn->json body-str))
                              (assoc-in it [:headers hdrs/content-type] hdrs/application-json))]
               (assoc ctx :response resp)))})
