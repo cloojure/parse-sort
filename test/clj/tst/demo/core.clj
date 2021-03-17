@@ -1,17 +1,11 @@
 (ns tst.demo.core
   (:use demo.core tupelo.core tupelo.test)
   (:require
-    [camel-snake-kebab.core :as csk]
     [clojure.java.io :as io]
-    [clojure.walk :as walk]
-    [org.httpkit.client :as http]
     [schema.core :as s]
-    [tupelo.java-time :as tjt]
-    [tupelo.schema :as tsk]
     [tupelo.string :as str])
-(:import
-    [java.time LocalDate ]
-    [java.time.format DateTimeFormatter ]
+  (:import
+    [java.time LocalDate]
     ))
 
 (def test-data-fnames

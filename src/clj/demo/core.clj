@@ -4,23 +4,22 @@
     [camel-snake-kebab.core :as csk]
     [clojure.java.io :as io]
     [clojure.walk :as walk]
-    [org.httpkit.client :as http]
     [schema.core :as s]
     [tupelo.string :as str]
     [tupelo.schema :as tsk]
     )
   (:import
     [java.time LocalDate]
-    [java.time.format DateTimeFormatter ]
+    [java.time.format DateTimeFormatter]
     ))
 
-;---------------------------------------------------------------------------------------------------
-; Assumptions:
-;   - well-formatted data (legal dates & charsets, etc)
-;   - no whitespace within any field (esp. name & color fields)
-;   - file suffix indicates format:  *.csv *.psv *.wsv
-;   - the problem definition did not mention a header row in the *SV files, so we assume there isn't one
-;---------------------------------------------------------------------------------------------------
+;***************************************************************************************************
+;*** Assumptions:
+;***   - well-formatted data (legal dates & charsets, etc)
+;***   - no whitespace within any field (esp. name & color fields)
+;***   - file suffix indicates format:  *.csv *.psv *.wsv
+;***   - the problem definition did not mention a header row in the *SV files, so we assume there isn't one
+;***************************************************************************************************
 
 ;---------------------------------------------------------------------------------------------------
 (def global-state (atom {}))

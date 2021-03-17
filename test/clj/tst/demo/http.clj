@@ -3,13 +3,8 @@
   (:require
     [demo.core :as core]
     [io.pedestal.http :as http]
-    [io.pedestal.http.route :as route]
-    [io.pedestal.interceptor :as interceptor]
-    [io.pedestal.interceptor.chain :as chain]
     [io.pedestal.test :as ptst]
-    [org.httpkit.client :as http-client]
     [schema.core :as s]
-    [tupelo.base64url :as b64url]
     [tupelo.pedestal :as tp :refer [service-fn]]
     [tupelo.pedestal.headers :as hdrs]
     [tupelo.schema :as tsk]
