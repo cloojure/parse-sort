@@ -22,27 +22,9 @@
 
 ;---------------------------------------------------------------------------------------------------
 (dotest
-  (tp/with-service tst-service-map ; mock testing w/o actually starting jetty
-    (let [resp (ptst/response-for (service-fn) :get "/greet")]
-      (is= (grab :status resp) 200)
-      (is-nonblank= "Hello, World!" (grab :body resp))
-
-      )))
-
-(dotest
-  (try
-    (let [sys-err-str (with-system-err-str ; capture jetty logging from System/err
-                        (tp/with-server tst-service-map ; test over http using jetty server
-                          (let [resp @(http-client/get "http://localhost:8890/greet")]
-                            (is (str/contains-str? (grab :body resp) "Hello, World!")))))]
-      ; (spyx sys-err-str)
-      (is (not-empty? (str/fgrep "GET /greet" sys-err-str)))))) ; eg '[qtp1379526008-32] INFO io.pedestal.http - {:msg "GET /greet", :line 80}'
-
-
-(dotest-focus
   (discarding-system-err
-    ; We want to discard Pedestal info msgs like:
-    ;   [main] INFO io.pedestal.http - {:msg "POST /records", :line 80}
+    ; ^^^ use this to discard Pedestal info msgs like:
+    ;         [main] INFO io.pedestal.http - {:msg "POST /records", :line 80}
 
     (tp/with-service tst-service-map ; mock testing w/o actually starting jetty
 
